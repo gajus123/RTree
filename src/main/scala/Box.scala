@@ -3,6 +3,7 @@ case class Box(left: Float, right: Float, down: Float, top: Float) {
     val x_diff = right - left
     val y_diff = top - down
     x_diff * y_diff
+
   }
 
   def expand(box: Box): Box = {
