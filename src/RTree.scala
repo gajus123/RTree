@@ -20,8 +20,8 @@ case class RTree[A](root: Node[A]) {
     new RTree[A](root.remove(element))
   };
 
-  def search(space: Box): Seq[A] = {
-    List[A]()
+  def search(box : Box) : List[Element[A]] = {
+    root.search(box)
   }
 
   //Additional

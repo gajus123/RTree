@@ -1,3 +1,4 @@
+import scala.annotation.tailrec
 import scala.collection.immutable.Vector
 
 abstract class Node[A](val box : Box) extends HasBox {
@@ -8,6 +9,8 @@ abstract class Node[A](val box : Box) extends HasBox {
   def remove(element: Element[A]): Node[A] = {
     this
   }
+
+  def search(search_box : Box) : List[Element[A]]
 
   //Helper
   def print : String = {
@@ -60,6 +63,29 @@ case class LeafNode[A](childs : Vector[Element[A]], override val box: Box) exten
     else
       Left(splitLeafNode(new_childs))
   }
+
+  def search(search_box : Box) : List[Element[A]] = {
+    @tailrec
+    def helper(vector : Vector[Element[A]], result : List[Element[A]]) : List[Element[A]] = {
+      if(vector.isEmpty)
+        result
+      else {
+        val current = vector.head
+        if (current.box.instersect(search_box))
+          helper(vector.tail, result :+ current)
+        else
+          helper(vector.tail, result)
+      }
+    }
+    helper(childs, List.empty[Element[A]])
+  }
+
+  /*def nearest(point : Point) : Element[A] = {
+    val best_element = childs.minBy[Float]((element : Element[A]) => {
+      element.box.distance(point)
+    })
+    best_element
+  }*/
 }
 
 case class CompositeNode[A](childs : Vector[Node[A]], override val box: Box) extends Node[A](box) {
@@ -81,4 +107,24 @@ case class CompositeNode[A](childs : Vector[Node[A]], override val box: Box) ext
         Right(CompositeNode(new_nodes, box.expand(node.box)))
     }
   }
+
+  def search(search_box : Box) : List[Element[A]] = {
+    @tailrec
+    def helper(vector : Vector[Node[A]], result : List[Element[A]]) : List[Element[A]] = {
+      if(vector.isEmpty)
+        result
+      else {
+        val current = vector.head
+        if(current.box.instersect(search_box))
+          helper(vector.tail, result ++ current.search(search_box))
+        else
+          helper(vector.tail, result)
+      }
+    }
+    helper(childs, List.empty[Element[A]])
+  }
+
+  /*def nearest(point : Point) : Element[A] = {
+
+  }*/
 }
