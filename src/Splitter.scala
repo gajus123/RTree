@@ -3,25 +3,27 @@ import scala.collection.immutable.Vector
 
 //Quadratic Split Node algorithm
 object Splitter {
-  def pickSeeds[B <: HasBox](vector: Vector[B]) : (B, B) = {
+  def pickSeeds[B <: HasBox](vector: Vector[B]) : (Vector[B], B, B) = {
     val all_pairs = for {
       first <- vector
-      second <- vector
+      second <- vector if first != second
     } yield (first, second)
-    all_pairs.maxBy[Float]((parameter : (B, B)) => {
+    val pair = all_pairs.maxBy[Float]((parameter : (B, B)) => {
       val big_box : Box = parameter._1.box.expand(parameter._2.box)
       big_box.area - parameter._1.box.area - parameter._2.box.area
     })
+    (vector.diff(Vector[B](pair._1, pair._2)), pair._1, pair._2)
   }
 
   def splitNode[B <: HasBox](vector: Vector[B]) : ((Vector[B], Box), (Vector[B], Box)) = {
     val vectors_begin = pickSeeds(vector)
-    val first_node = vectors_begin._1
-    val second_node = vectors_begin._2
+    val new_vector = vectors_begin._1
+    val first_node = vectors_begin._2
+    val second_node = vectors_begin._3
     val vector1 : Vector[B] = Vector[B](first_node)
     val vector2 : Vector[B] = Vector[B](second_node)
 
-    val result = distributeEntry((vector.tail.tail, (vector1, first_node.box), (vector2, second_node.box)))
+    val result = distributeEntry((new_vector, (vector1, first_node.box), (vector2, second_node.box)))
     (result._2, result._3)
   }
 
