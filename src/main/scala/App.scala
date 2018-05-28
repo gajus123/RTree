@@ -18,7 +18,9 @@ object App {
     result.foreach((element : Element[Int]) => {
       println(element.value)
     })*/
+    print(drzewo.search(element2.box).contains(element2))
     print(drzewo.print)
     print(drzewo.remove(element1).remove(element2).print)
+
   }
 }
