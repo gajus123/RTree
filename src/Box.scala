@@ -17,7 +17,60 @@ case class Box(left: Float, right: Float, down: Float, top: Float) {
     val new_box = expand(box)
     new_box.area - area
   }
+
+  /*def distance(point : Point) : Float = {
+    val x_diff = {
+      if(point.x < left)
+        left - point.x
+      else if(point.x < right)
+        0.0F
+      else
+        point.x - right
+    }
+    val y_diff = {
+      if(point.y < down)
+        down - point.y
+      else if(point.y < top)
+        0.0F
+      else
+        point.y - top
+    }
+    Math.sqrt(x_diff * x_diff + y_diff * y_diff).toFloat
+  }*/
+
+  def instersect(box : Box) : Boolean = {
+    val x_intersect = {
+      if(box.left < left) {
+        if (box.right >= left)
+          true
+        else
+          false
+      }
+      else if(box.left <= right)
+        true
+      else //box.left > right
+        false
+    }
+    val y_intersect = {
+      if(box.down < down) {
+        if (box.top >= down)
+          true
+        else
+          false
+      }
+      else if(box.down <= top)
+        true
+      else //box.down > top
+        false
+    }
+    if(x_intersect && y_intersect)
+      true
+    else
+      false
+  }
 }
+
+//case class Point(x : Float, y : Float) extends Box(x, x, y, y)
 
 object Box {
   def empty: Box = {
