@@ -1,4 +1,14 @@
+/** A simple representation for minimum bounding rectangle
+  *
+  * @constructor
+  * @param left minimum x value
+  * @param right max value
+  * @param down minimum y value
+  * @param top max y value
+  */
 case class Box(left: Float, right: Float, down: Float, top: Float) {
+  /** Calculates and returns box's area
+    */
   val area: Float = {
     val x_diff = right - left
     val y_diff = top - down
@@ -6,6 +16,11 @@ case class Box(left: Float, right: Float, down: Float, top: Float) {
 
   }
 
+  /** Expands box's boundaries to contain given box
+    *
+    * @param box marks the area to expand by
+    * @return a new box with expanded boundaries
+    */
   def expand(box: Box): Box = {
     val min_x = Math.min(left, box.left)
     val min_y = Math.min(down, box.down)
@@ -14,31 +29,20 @@ case class Box(left: Float, right: Float, down: Float, top: Float) {
     Box(min_x, max_x, min_y, max_y)
   }
 
+  /** Calculates and returns the area growth after expanding current box by given one
+    *
+    * @param box marks the area to calculate expansion of
+    */
   def calcExpand(box: Box): Float = {
     val new_box = expand(box)
     new_box.area - area
   }
 
-  /*def distance(point : Point) : Float = {
-    val x_diff = {
-      if(point.x < left)
-        left - point.x
-      else if(point.x < right)
-        0.0F
-      else
-        point.x - right
-    }
-    val y_diff = {
-      if(point.y < down)
-        down - point.y
-      else if(point.y < top)
-        0.0F
-      else
-        point.y - top
-    }
-    Math.sqrt(x_diff * x_diff + y_diff * y_diff).toFloat
-  }*/
-
+  /** Checks if box intersects given box
+    *
+    * @param box marks the area to check intersection with
+    * @return true if boxes intersects and false otherwise
+    */
   def instersect(box : Box) : Boolean = {
     val x_intersect = {
       if(box.left < left) {
@@ -71,9 +75,12 @@ case class Box(left: Float, right: Float, down: Float, top: Float) {
   }
 }
 
-//case class Point(x : Float, y : Float) extends Box(x, x, y, y)
-
 object Box {
+  /** Creates empty box
+    *
+    * Empty, box is box, that boundaries are at minimal and maximal coordinates, so it cannot intersect any other box
+    * @return a new created empty box
+    */
   def empty: Box = {
     val maxCoord = Math.sqrt(Float.MaxValue / 2.0F).toFloat / 2.0F
     val minCoord = -maxCoord

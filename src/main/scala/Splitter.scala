@@ -1,8 +1,16 @@
 import scala.annotation.tailrec
 import scala.collection.immutable.Vector
 
-//Quadratic Split Node algorithm
+/** Quadratic Split Node algorithm
+  *
+  */
 object Splitter {
+  /**
+    *
+    * @param vector
+    * @tparam B
+    * @return
+    */
   def pickSeeds[B <: HasBox](vector: Vector[B]) : (Vector[B], B, B) = {
     val all_pairs = for {
       first <- vector
@@ -15,6 +23,12 @@ object Splitter {
     (vector.diff(Vector[B](pair._1, pair._2)), pair._1, pair._2)
   }
 
+  /**
+    *
+    * @param vector
+    * @tparam B
+    * @return
+    */
   def splitNode[B <: HasBox](vector: Vector[B]) : ((Vector[B], Box), (Vector[B], Box)) = {
     val vectors_begin = pickSeeds(vector)
     val new_vector = vectors_begin._1
@@ -28,6 +42,13 @@ object Splitter {
   }
 
   type DistributionType[B] = (Vector[B], (Vector[B], Box), (Vector[B], Box))
+
+  /**
+    *
+    * @param par
+    * @tparam B
+    * @return
+    */
   @tailrec
   final def distributeEntry[B <: HasBox](par : DistributionType[B]) : DistributionType[B] = {
     if(par._1.isEmpty)
@@ -63,6 +84,14 @@ object Splitter {
     }
   }
 
+  /**
+    *
+    * @param vector
+    * @param box1
+    * @param box2
+    * @tparam B
+    * @return
+    */
   def pickNext[B <: HasBox](vector: Vector[B], box1 : Box, box2 : Box) : (B, Vector[B]) = {
     val (best_node : B, index : Int) = vector.zipWithIndex.maxBy[Float]((variable : (B, Int)) => {
       val expand1 = box1.calcExpand(variable._1.box)

@@ -56,7 +56,7 @@ class BoxTest extends  FunSuite {
 
     assert( Box.empty.expand(box) === box )
   }
-  
+
 
 
 }

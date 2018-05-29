@@ -1,15 +1,45 @@
 import scala.annotation.tailrec
 import scala.collection.immutable.Vector
 
+/** Abstract class for representing node
+  *
+  * @constructor
+  * @param box minimum bounding rectangle of elements below that node
+  * @tparam A data type stored in the node
+  */
 abstract class Node[A](val box : Box) extends HasBox {
   val maxNodeSize : Int = 4
 
+  /** Inserts new element into the tree
+    *
+    * @param element to be inserted into tree
+    * @return either node or vector of nodes after insertion
+    */
   def insert(element: Element[A]): Either[Vector[Node[A]], Node[A]]
 
+  /** Removes given element from the node
+    *
+    * Method returns list of element to insert into new tree,and optional a head node from which new tree is created.
+    * If the element was not found it this node None is returned,
+    * and if the element was removed and after removal the node had less then maxNodeSize / 2 children it need to be removed,
+    * so List of elements to readd to the tree and None is returned,
+    * and if the element was removed and the node needs to be replaced by other node,
+    * so List of elements to readd to the tree and node to.
+    *
+    * @param element to be removed from tree
+    * @return List of elements to readd to the tree and node recreate tree from
+    */
   def remove(element: Element[A]): (List[Element[A]],Option[Node[A]])
 
+  /** Returns list of elements, which minimum bounding rectangle is contained in given minimum bounding rectangle
+    *
+    * @param search_box minimum bounding rectangle to search elements in
+    */
   def search(search_box : Box) : List[Element[A]]
 
+  /** Returns list of elements, that are below this node
+    *
+    */
   def elements : List[Element[A]]
 
   //Helper
@@ -34,11 +64,21 @@ abstract class Node[A](val box : Box) extends HasBox {
     sb.toString
   }
 
+  /**
+    *
+    * @param vector
+    * @return
+    */
   def splitLeafNode(vector : Vector[Element[A]]) : Vector[LeafNode[A]] = {
     val ((v1, b1), (v2, b2)) = Splitter.splitNode(vector)
     Vector(LeafNode(v1, b1), LeafNode(v2, b2))
   }
 
+  /**
+    *
+    * @param vector
+    * @return
+    */
   def splitCompositeNode(vector : Vector[Node[A]]) : Vector[CompositeNode[A]] = {
     val ((v1, b1), (v2, b2)) = Splitter.splitNode(vector)
     Vector(CompositeNode(v1, b1), CompositeNode(v2, b2))
@@ -46,6 +86,10 @@ abstract class Node[A](val box : Box) extends HasBox {
 }
 
 object Node {
+  /** Creates an empty tree
+    *
+    * @tparam A stored data type
+    */
   def empty[A] : Node[A] = LeafNode[A](Vector.empty[Element[A]], Box.empty)
 
   def getBestNodeAndIndex[A](collection : Seq[Node[A]], box : Box) : (Node[A], Int) = {
@@ -55,7 +99,24 @@ object Node {
   }
 }
 
+/** Class representing leaf node of rtree
+  *
+  * @constructor
+  * @param childs vector of elements contained in leaf
+  * @param box minimum bounding rectangle of elements in this leaf node
+  * @tparam A data type stored in the node
+  */
 case class LeafNode[A](childs : Vector[Element[A]], override val box: Box) extends Node[A](box) {
+  /** Inserts new element into the tree
+    *
+    * The structure is immutable, so method returns new node to replace the current node.
+    * It can either return a single node to replace when node contains less then maxNodeSize elements,
+    * or if node already contains maxNodeSize elements it will split this node into two other
+    * and redistribute elements between them using Quadratic Split Node algorithm.
+    *
+    * @param element to be inserted into tree
+    * @return either node or vector of nodes after insertion
+    */
   def insert(element: Element[A]): Either[Vector[Node[A]], Node[A]] = {
     val new_childs : Vector[Element[A]] = childs :+ element
     if(new_childs.size <= maxNodeSize)
@@ -64,6 +125,10 @@ case class LeafNode[A](childs : Vector[Element[A]], override val box: Box) exten
       Left(splitLeafNode(new_childs))
   }
 
+  /** Returns list of elements, which minimum bounding rectangle is contained in given minimum bounding rectangle
+    *
+    * @param search_box minimum bounding rectangle to search elements in
+    */
   def search(search_box : Box) : List[Element[A]] = {
     @tailrec
     def helper(vector : Vector[Element[A]], result : List[Element[A]]) : List[Element[A]] = {
@@ -79,6 +144,19 @@ case class LeafNode[A](childs : Vector[Element[A]], override val box: Box) exten
     }
     helper(childs, List.empty[Element[A]])
   }
+
+  /** Removes given element from the node
+    *
+    * Method returns list of element to insert into new tree,and optional a head node from which new tree is created.
+    * If the element was not found it this node empty list and None is returned,
+    * and if the element was removed and after removal the node has less then maxNodeSize / 2 children it need to be removed
+    * and its children readded ,so List of elements to readd to the tree and None is returned,
+    * and if the element was removed and after removal the node has more then maxNodeSize / 2 children it needs to be replaced,
+    * so minimal bounding are is expanded and empty List and new node to replace current with is returned.
+    *
+    * @param element to be removed from tree
+    * @return List of elements to readd to the tree and node recreate tree from
+    */
   def remove(element: Element[A]): (List[Element[A]],Option[Node[A]]) = {
     val index = childs.indexOf(element)
     if( index < 0 ) {
@@ -93,22 +171,38 @@ case class LeafNode[A](childs : Vector[Element[A]], override val box: Box) exten
         val newBox = newChilds.foldLeft(Box.empty)(_ expand _.box)
         (List.empty[Element[A]], Some(LeafNode(newChilds, newBox)))
       }
-
     }
   }
 
+  /** Returns list of elements, that are in this leaf node
+    *
+    */
   def elements : List[Element[A]] = {
     childs.toList
   }
-  /*def nearest(point : Point) : Element[A] = {
-    val best_element = childs.minBy[Float]((element : Element[A]) => {
-      element.box.distance(point)
-    })
-    best_element
-  }*/
+
 }
 
+/** Class representing composite node
+  *
+  * @constructor
+  * @param childs vector of nodes to be contained in this composite node
+  * @param box minimum bounding rectangle of elements below this composite node
+  * @tparam A data type stored in the node
+  */
 case class CompositeNode[A](childs : Vector[Node[A]], override val box: Box) extends Node[A](box) {
+  /** Inserts new element into the tree
+    *
+    * Method finds best node among its children to insert and call insert method on that node.
+    * If insert call returns a single node, then previously found best node is replaced with one returned,
+    * and if insert call returns vector of nodes, then previously found best node is replaced with that vector
+    * and if node contains less then maxNodeSize elements current node minimum bounding rectangle is expanded,
+    * else if after inserting vector node contains more then maxNodeSize elements it will split this node into two other
+    * and redistribute elements between them using Quadratic Split Node algorithm.
+    *
+    * @param element to be inserted into tree
+    * @return either node or vector of nodes after insertion
+    */
   def insert(element: Element[A]): Either[Vector[Node[A]], Node[A]] = {
     val (best_node : Node[A], index : Int) = Node.getBestNodeAndIndex(childs, element.box)
 
@@ -128,6 +222,11 @@ case class CompositeNode[A](childs : Vector[Node[A]], override val box: Box) ext
     }
   }
 
+  /** Inserts new element into the tree
+    *
+    * @param search_box minimum bounding rectangle to search elements in
+    * @return
+    */
   def search(search_box : Box) : List[Element[A]] = {
     @tailrec
     def helper(vector : Vector[Node[A]], result : List[Element[A]]) : List[Element[A]] = {
@@ -144,6 +243,17 @@ case class CompositeNode[A](childs : Vector[Node[A]], override val box: Box) ext
     helper(childs, List.empty[Element[A]])
   }
 
+  /** Removes given element from the node
+    *
+    * Method returns list of element to insert into new tree,and optional a head node from which new tree is created.
+    * If the element was not found it this node empty list is returned,
+    * and if the element was removed and after removal the node had less then maxNodeSize / 2 children it need to be removed,
+    * so List of elements to readd to the tree and None is returned,
+    * and if the element was removed and the node needs to be replaced by other node,
+    * so List of elements to readd to the tree and node to.
+    * @param element to be removed from tree
+    * @return List of elements to readd to the tree and node recreate tree from
+    */
   def remove(element: Element[A]): (List[Element[A]],Option[Node[A]]) = {
     if( !box.instersect(element.box) ) {
       (List.empty[Element[A]], Some(this) )
@@ -183,6 +293,9 @@ case class CompositeNode[A](childs : Vector[Node[A]], override val box: Box) ext
     }
   }
 
+  /** Returns list of elements, that are below this composite node
+    *
+    */
   def elements : List[Element[A]] = {
     if(childs.isEmpty)
       List.empty[Element[A]]
@@ -190,8 +303,4 @@ case class CompositeNode[A](childs : Vector[Node[A]], override val box: Box) ext
       childs.foldLeft(List.empty[Element[A]])(_ ++ _.elements)
     }
   }
-
-  /*def nearest(point : Point) : Element[A] = {
-
-  }*/
 }
