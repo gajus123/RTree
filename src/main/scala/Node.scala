@@ -19,13 +19,6 @@ abstract class Node[A](val box : Box) extends HasBox {
 
   /** Removes given element from the node
     *
-    * Method returns list of element to insert into new tree,and optional a head node from which new tree is created.
-    * If the element was not found it this node None is returned,
-    * and if the element was removed and after removal the node had less then maxNodeSize / 2 children it need to be removed,
-    * so List of elements to readd to the tree and None is returned,
-    * and if the element was removed and the node needs to be replaced by other node,
-    * so List of elements to readd to the tree and node to.
-    *
     * @param element to be removed from tree
     * @return List of elements to readd to the tree and node recreate tree from
     */
@@ -64,20 +57,20 @@ abstract class Node[A](val box : Box) extends HasBox {
     sb.toString
   }
 
-  /**
+  /** Redistributes leaf node children into newly created nodes
     *
-    * @param vector
-    * @return
+    * @param vector of leaf node's children (elements)
+    * @return vector of newly created nodes with given elements split between them
     */
   def splitLeafNode(vector : Vector[Element[A]]) : Vector[LeafNode[A]] = {
     val ((v1, b1), (v2, b2)) = Splitter.splitNode(vector)
     Vector(LeafNode(v1, b1), LeafNode(v2, b2))
   }
 
-  /**
+  /** Redistributes composite node children into newly created nodes
     *
-    * @param vector
-    * @return
+    * @param vector of composite node's children (nodes)
+    * @return vector of newly created nodes with given nodes split between them
     */
   def splitCompositeNode(vector : Vector[Node[A]]) : Vector[CompositeNode[A]] = {
     val ((v1, b1), (v2, b2)) = Splitter.splitNode(vector)
@@ -111,8 +104,8 @@ case class LeafNode[A](childs : Vector[Element[A]], override val box: Box) exten
     *
     * The structure is immutable, so method returns new node to replace the current node.
     * It can either return a single node to replace when node contains less then maxNodeSize elements,
-    * or if node already contains maxNodeSize elements it will split this node into two other
-    * and redistribute elements between them using Quadratic Split Node algorithm.
+    * or if node already contains more then maxNodeSize elements it will split this node into two other
+    * and redistribute elements between them using Quadratic Split Node algorithm and return vector of nodes.
     *
     * @param element to be inserted into tree
     * @return either node or vector of nodes after insertion
@@ -148,7 +141,7 @@ case class LeafNode[A](childs : Vector[Element[A]], override val box: Box) exten
   /** Removes given element from the node
     *
     * Method returns list of element to insert into new tree,and optional a head node from which new tree is created.
-    * If the element was not found it this node empty list and None is returned,
+    * If the element was not found it this node empty list and this node is returned,
     * and if the element was removed and after removal the node has less then maxNodeSize / 2 children it need to be removed
     * and its children readded ,so List of elements to readd to the tree and None is returned,
     * and if the element was removed and after removal the node has more then maxNodeSize / 2 children it needs to be replaced,
@@ -193,8 +186,8 @@ case class LeafNode[A](childs : Vector[Element[A]], override val box: Box) exten
 case class CompositeNode[A](childs : Vector[Node[A]], override val box: Box) extends Node[A](box) {
   /** Inserts new element into the tree
     *
-    * Method finds best node among its children to insert and call insert method on that node.
-    * If insert call returns a single node, then previously found best node is replaced with one returned,
+    * Method finds best fitting node among its children to insert and call insert method on that node.
+    * If insert call returns a single node, then previously found node is replaced with one returned,
     * and if insert call returns vector of nodes, then previously found best node is replaced with that vector
     * and if node contains less then maxNodeSize elements current node minimum bounding rectangle is expanded,
     * else if after inserting vector node contains more then maxNodeSize elements it will split this node into two other
@@ -222,10 +215,10 @@ case class CompositeNode[A](childs : Vector[Node[A]], override val box: Box) ext
     }
   }
 
-  /** Inserts new element into the tree
+  /** Search new element, which minimum bounding rectangle is contained in given minimum bounding rectangle.
     *
     * @param search_box minimum bounding rectangle to search elements in
-    * @return
+    * @return list of elements below that node, which minimum bounding rectangle is contained in given minimum bounding rectangle
     */
   def search(search_box : Box) : List[Element[A]] = {
     @tailrec
@@ -246,11 +239,7 @@ case class CompositeNode[A](childs : Vector[Node[A]], override val box: Box) ext
   /** Removes given element from the node
     *
     * Method returns list of element to insert into new tree,and optional a head node from which new tree is created.
-    * If the element was not found it this node empty list is returned,
-    * and if the element was removed and after removal the node had less then maxNodeSize / 2 children it need to be removed,
-    * so List of elements to readd to the tree and None is returned,
-    * and if the element was removed and the node needs to be replaced by other node,
-    * so List of elements to readd to the tree and node to.
+    * If the element was not found it this node empty list and this node is returned,
     * @param element to be removed from tree
     * @return List of elements to readd to the tree and node recreate tree from
     */

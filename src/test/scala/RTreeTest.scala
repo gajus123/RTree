@@ -90,4 +90,18 @@ class RTreeTest extends FunSuite {
     assert(tree.search(element.box).isEmpty)
   }
 
+  test("when 50 elements are inserted and then removed, search result is empty "){
+    val element = Element(Box(0.1F, 0.3F, 0.5F, 0.7F), 3)
+    var tree = RTree.empty[Int]
+    for ( i <- (1 to 50)) {
+      tree.insert(Element( Box(0.01F * i, 0.015F * i, 0.01F * i, 0.015F * i), i) )
+    }
+
+    for ( i <- (1 to 50)) {
+      tree.remove(Element( Box(0.01F * i, 0.015F * i, 0.01F * i, 0.015F * i), i) )
+    }
+
+    assert(tree.search(Box(0.01F , 0.75F , 0.01F , 0.75F) ) === List.empty)
+  }
+
 }
