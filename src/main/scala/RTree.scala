@@ -67,7 +67,7 @@ case class RTree[A](root: Node[A]) {
   }
 
   //Helper
-  def print : String = root.print
+  def print = println(root.print)
 }
 
 object RTree {
