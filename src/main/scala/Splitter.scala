@@ -5,11 +5,11 @@ import scala.collection.immutable.Vector
   *
   */
 object Splitter {
-  /**
+  /** Select two nodes from given which bounding box free area is the biggest
     *
-    * @param vector
-    * @tparam B
-    * @return
+    * @param vector nodes to select from
+    * @tparam B type of node
+    * @return tuple of vector remaining nodes and two selected nodes
     */
   def pickSeeds[B <: HasBox](vector: Vector[B]) : (Vector[B], B, B) = {
     val all_pairs = for {
@@ -23,11 +23,11 @@ object Splitter {
     (vector.diff(Vector[B](pair._1, pair._2)), pair._1, pair._2)
   }
 
-  /**
+  /** Split given nodes into two vectors
     *
-    * @param vector
-    * @tparam B
-    * @return
+    * @param vector nodes to split
+    * @tparam B type of node
+    * @return tuple of two tuples of vector of nodes and its bounding box
     */
   def splitNode[B <: HasBox](vector: Vector[B]) : ((Vector[B], Box), (Vector[B], Box)) = {
     val vectors_begin = pickSeeds(vector)
@@ -43,11 +43,11 @@ object Splitter {
 
   type DistributionType[B] = (Vector[B], (Vector[B], Box), (Vector[B], Box))
 
-  /**
+  /** Split given nodes into to vectors by minimum box expanding
     *
-    * @param par
-    * @tparam B
-    * @return
+    * @param par tuple of vector of nodes to split, tuple of vector of nodes and bounding box, second tuple
+    * @tparam B type of node
+    * @return tuple of vector of nodes to split, tuple of vector of nodes and bounding box, second tuple
     */
   @tailrec
   final def distributeEntry[B <: HasBox](par : DistributionType[B]) : DistributionType[B] = {
@@ -84,13 +84,13 @@ object Splitter {
     }
   }
 
-  /**
+  /** Finds node which difference expanding given boxes is the largest
     *
-    * @param vector
-    * @param box1
-    * @param box2
-    * @tparam B
-    * @return
+    * @param vector nodes to select from
+    * @param box1 bounding box of first set
+    * @param box2 bounding box of second set
+    * @tparam B type of node
+    * @return tuple of selected node and vector of remaining nodes
     */
   def pickNext[B <: HasBox](vector: Vector[B], box1 : Box, box2 : Box) : (B, Vector[B]) = {
     val (best_node : B, index : Int) = vector.zipWithIndex.maxBy[Float]((variable : (B, Int)) => {
