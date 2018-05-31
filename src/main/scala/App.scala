@@ -9,7 +9,7 @@ object App {
     drzewo = drzewo.insert(Element(Box(0.3F, 1.0F, 0.2F, 0.4F), 4))
     drzewo = drzewo.insert(Element(Box(0.9F, 1.2F, 0.25F, 0.42F), 5))
 
-    print(drzewo.search(element2.box).contains(element2))
+    println(drzewo.search(element2.box).contains(element2))
     drzewo.print
     drzewo.remove(element1).remove(element2).print
 

@@ -66,8 +66,10 @@ case class RTree[A](root: Node[A]) {
     }
   }
 
-  //Helper
-  def print = println(root.print)
+  /** Print tree
+    *
+    */
+  def print : Unit = root.printNode(0)
 }
 
 object RTree {

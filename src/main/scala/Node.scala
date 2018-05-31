@@ -35,27 +35,11 @@ abstract class Node[A](val box : Box) extends HasBox {
     */
   def elements : List[Element[A]]
 
-  //Helper
-  def print : String = {
-    def recur(node : Node[A], i : Int, sb : StringBuilder) : Unit = {
-      val pad = " " * i
-      val a = node.box.area
-      node match {
-        case LeafNode(childs, box) =>
-          val pad2 = " " * (i + 1)
-          sb.append(s"$pad leaf $a $box:\n")
-          childs.foreach { case Element(p_box, value) =>
-            sb.append(s"$pad2 element $p_box: $value\n")
-          }
-        case CompositeNode(childs, box) =>
-          sb.append(s"$pad composite $a $box:\n")
-          childs.foreach(c => recur(c, i+1, sb))
-      }
-    }
-    val sb = new StringBuilder
-    recur(this, 0, sb)
-    sb.toString
-  }
+  /** Print node
+    *
+    * @param spaces number of spaces on line begin
+    */
+  def printNode(spaces : Int) : Unit
 
   /** Redistributes leaf node children into newly created nodes
     *
@@ -100,6 +84,14 @@ object Node {
   * @tparam A data type stored in the node
   */
 case class LeafNode[A](childs : Vector[Element[A]], override val box: Box) extends Node[A](box) {
+  def printNode(spaces : Int) : Unit = {
+    for (i <- 1 to spaces) { print(" ") }
+    println("leaf " + box)
+    childs.foreach((child : Element[A]) => {
+      for (i <- 1 to spaces + 2) { print(" ") }
+      println(child.box + " " + child.value)
+    })
+  }
   /** Inserts new element into the tree
     *
     * The structure is immutable, so method returns new node to replace the current node.
@@ -184,6 +176,14 @@ case class LeafNode[A](childs : Vector[Element[A]], override val box: Box) exten
   * @tparam A data type stored in the node
   */
 case class CompositeNode[A](childs : Vector[Node[A]], override val box: Box) extends Node[A](box) {
+  def printNode(spaces : Int) : Unit = {
+    for (i <- 1 to spaces) { print(" ")}
+    println("composite " + box)
+    childs.foreach((child : Node[A]) => {
+      child.printNode(spaces + 2)
+    })
+  }
+
   /** Inserts new element into the tree
     *
     * Method finds best fitting node among its children to insert and call insert method on that node.
